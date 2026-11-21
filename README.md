@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # CivicResolve
 
 **Transforming Civic Complaints into Real-World Solutions**
@@ -300,3 +301,7 @@ This prototype uses a **JSON-file data store behind a repository layer** (`issue
 
 ## Built with
 Google Gemini, Google Antigravity, React, Express, Leaflet and OpenStreetMap, for **PromptWars x GDGoC PSG iTech 2026**.
+=======
+# CivicFIX
+AI-powered civic issue reporting and resolution platform that helps citizens report local problems, track progress, and support community-driven solutions.
+>>>>>>> origin/main
