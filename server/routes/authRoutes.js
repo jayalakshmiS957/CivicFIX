@@ -45,7 +45,8 @@ router.post('/register', authLimiter, async (req, res) => {
   try {
     const { isValid, errors, data } = validateRegisterInput(req.body);
     if (!isValid) {
-      return res.status(400).json({ success: false, errors });
+      const firstError = Object.values(errors).find((v) => typeof v === 'string') || 'Invalid registration details.';
+      return res.status(400).json({ success: false, error: firstError, errors });
     }
 
     const existing = await usersRepo.findByEmail(data.email);
@@ -90,7 +91,8 @@ router.post('/login', authLimiter, async (req, res) => {
   try {
     const { isValid, errors, data } = validateLoginInput(req.body);
     if (!isValid) {
-      return res.status(400).json({ success: false, errors });
+      const firstError = Object.values(errors).find((v) => typeof v === 'string') || 'Invalid email or password format.';
+      return res.status(400).json({ success: false, error: firstError, errors });
     }
 
     const user = await usersRepo.findByEmail(data.email);

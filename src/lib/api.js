@@ -26,7 +26,25 @@ async function request(endpoint, options = {}) {
   const data = await response.json().catch(() => ({}));
 
   if (!response.ok) {
-    const error = new Error(data.error || `HTTP error ${response.status}`);
+    let errorMessage = 'Request failed. Please try again.';
+    if (typeof data.error === 'string' && data.error.trim()) {
+      errorMessage = data.error;
+    } else if (data.error && typeof data.error.message === 'string' && data.error.message.trim()) {
+      errorMessage = data.error.message;
+    } else if (typeof data.message === 'string' && data.message.trim()) {
+      errorMessage = data.message;
+    } else if (data.errors && typeof data.errors === 'object') {
+      const firstVal = Object.values(data.errors).find((v) => typeof v === 'string' && v.trim());
+      if (firstVal) errorMessage = firstVal;
+    } else if (response.statusText) {
+      errorMessage = `HTTP error ${response.status}: ${response.statusText}`;
+    }
+
+    if (typeof errorMessage !== 'string' || errorMessage === '[object Object]') {
+      errorMessage = 'Request failed. Please try again.';
+    }
+
+    const error = new Error(errorMessage);
     error.status = response.status;
     error.errors = data.errors;
     throw error;

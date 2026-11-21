@@ -106,7 +106,13 @@ export default function LoginPage() {
         navigate('/');
       }
     } else {
-      const errMsg = result.error || 'Incorrect email or password';
+      let rawErr = result?.error;
+      let errMsg = 'Sign in failed, please try again';
+      if (typeof rawErr === 'string' && rawErr.trim() && rawErr !== '[object Object]') {
+        errMsg = rawErr;
+      } else if (rawErr && typeof rawErr.message === 'string' && rawErr.message.trim() && rawErr.message !== '[object Object]') {
+        errMsg = rawErr.message;
+      }
       setError(errMsg);
       showToast(errMsg, 'error');
     }
@@ -225,7 +231,7 @@ export default function LoginPage() {
             role="alert"
             className="mb-6 p-3 rounded-lg bg-[#FCE8E6] border border-[#D93025]/30 text-xs text-[#D93025] font-medium"
           >
-            {error}
+            {typeof error === 'string' && error !== '[object Object]' ? error : 'Sign in failed, please try again'}
           </div>
         )}
 

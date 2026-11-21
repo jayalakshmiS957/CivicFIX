@@ -39,9 +39,14 @@ export function AuthProvider({ children }) {
       setSessionExpiredMessage('');
       return { success: true, user: data.user, ...data.user };
     } catch (err) {
+      let rawErr = err?.message;
+      let errMsg = 'Incorrect email or password';
+      if (typeof rawErr === 'string' && rawErr.trim() && rawErr !== '[object Object]') {
+        errMsg = rawErr;
+      }
       return {
         success: false,
-        error: err.message || 'Incorrect email or password',
+        error: errMsg,
       };
     }
   };

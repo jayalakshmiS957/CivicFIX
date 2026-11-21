@@ -99,9 +99,12 @@ class UsersRepository {
    */
   persist() {
     try {
+      if (!fs.existsSync(config.paths.data)) {
+        fs.mkdirSync(config.paths.data, { recursive: true });
+      }
       fs.writeFileSync(this.filePath, JSON.stringify(this.users, null, 2), 'utf-8');
     } catch (err) {
-      console.error('[UsersRepo] Failed to save users:', err);
+      console.warn('[UsersRepo] Failed to save users (keeping data in memory):', err.message);
     }
   }
 

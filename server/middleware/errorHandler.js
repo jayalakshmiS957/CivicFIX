@@ -18,9 +18,11 @@ export const errorHandler = (err, _req, res, _next) => {
   }
 
   // Return clean, safe error message for client errors (4xx)
+  const rawMsg = err.userMessage || err.message;
+  const errMsg = typeof rawMsg === 'string' && rawMsg.trim() && rawMsg !== '[object Object]' ? rawMsg : 'Request failed.';
   res.status(statusCode).json({
     success: false,
-    error: err.userMessage || err.message || 'Request failed.',
+    error: errMsg,
   });
 };
 

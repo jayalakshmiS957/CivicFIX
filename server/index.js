@@ -20,6 +20,9 @@ import trendRoutes from './routes/trendRoutes.js';
 
 const app = express();
 
+// Trust proxy for reverse proxies like Vercel so rate-limiting and IP detection work correctly
+app.set('trust proxy', 1);
+
 // Security Headers
 app.use(
   helmet({
@@ -51,8 +54,8 @@ app.use(
 );
 
 // Parsers
-app.use(express.json({ limit: '10mb' }));
-app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+app.use(express.json({ limit: '1mb' }));
+app.use(express.urlencoded({ extended: true, limit: '1mb' }));
 app.use(cookieParser());
 
 // Static Uploads Folder

@@ -51,13 +51,16 @@ class SupportsRepository {
 
   persist() {
     try {
+      if (!fs.existsSync(config.paths.data)) {
+        fs.mkdirSync(config.paths.data, { recursive: true });
+      }
       fs.writeFileSync(
         this.filePath,
         JSON.stringify({ supports: this.supports, shares: this.shares, userShares: this.userShares }, null, 2),
         'utf-8'
       );
     } catch (err) {
-      console.error('[SupportsRepo] Failed to save supports file:', err);
+      console.warn('[SupportsRepo] Failed to save supports file (keeping data in memory):', err.message);
     }
   }
 

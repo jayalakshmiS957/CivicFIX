@@ -15,8 +15,10 @@ router.post('/parse', requireAuth, aiLimiter, async (req, res) => {
   try {
     const { isValid, errors, data } = validateVoiceParseInput(req.body);
     if (!isValid) {
+      const firstError = Object.values(errors).find((v) => typeof v === 'string') || 'Invalid voice parse input.';
       return res.status(400).json({
         success: false,
+        error: firstError,
         errors,
       });
     }

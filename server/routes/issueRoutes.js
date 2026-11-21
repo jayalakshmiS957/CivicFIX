@@ -156,7 +156,8 @@ router.post('/', requireAuth, aiLimiter, handleUpload, async (req, res) => {
       if (req.file && fs.existsSync(req.file.path)) {
         fs.unlinkSync(req.file.path);
       }
-      return res.status(400).json({ success: false, errors });
+      const firstError = Object.values(errors).find((v) => typeof v === 'string') || 'Invalid issue report details.';
+      return res.status(400).json({ success: false, error: firstError, errors });
     }
 
     let imageBase64 = null;

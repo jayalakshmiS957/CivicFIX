@@ -178,7 +178,8 @@ router.patch('/issues/:id/override', async (req, res) => {
   try {
     const { isValid, errors, data } = validateAdminOverride(req.body);
     if (!isValid) {
-      return res.status(400).json({ success: false, errors });
+      const firstError = Object.values(errors).find((v) => typeof v === 'string') || 'Invalid override parameters.';
+      return res.status(400).json({ success: false, error: firstError, errors });
     }
 
     const updated = await issuesRepo.overrideAiAnalysis(

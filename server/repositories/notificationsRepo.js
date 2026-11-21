@@ -51,9 +51,12 @@ class NotificationsRepository {
 
   persist() {
     try {
+      if (!fs.existsSync(config.paths.data)) {
+        fs.mkdirSync(config.paths.data, { recursive: true });
+      }
       fs.writeFileSync(this.filePath, JSON.stringify(this.notifications, null, 2), 'utf-8');
     } catch (err) {
-      console.error('[NotificationsRepo] Failed to save notifications file:', err);
+      console.warn('[NotificationsRepo] Failed to save notifications file (keeping data in memory):', err.message);
     }
   }
 

@@ -156,13 +156,31 @@ class IssuesRepository {
       this.issues = [...INITIAL_COIMBATORE_ISSUES];
       this.persist();
     }
+    this.ensureSeedIssues();
+  }
+
+  ensureSeedIssues() {
+    let modified = false;
+    if (!Array.isArray(this.issues)) this.issues = [];
+    for (const seed of INITIAL_COIMBATORE_ISSUES) {
+      if (!this.issues.some((i) => i.id === seed.id)) {
+        this.issues.push({ ...seed });
+        modified = true;
+      }
+    }
+    if (modified) {
+      this.persist();
+    }
   }
 
   persist() {
     try {
+      if (!fs.existsSync(config.paths.data)) {
+        fs.mkdirSync(config.paths.data, { recursive: true });
+      }
       fs.writeFileSync(this.filePath, JSON.stringify(this.issues, null, 2), 'utf-8');
     } catch (err) {
-      console.error('[IssuesRepo] Failed to persist issues to file:', err);
+      console.warn('[IssuesRepo] Failed to persist issues to file (keeping data in memory):', err.message);
     }
   }
 
