@@ -25,7 +25,7 @@ router.post('/parse', requireAuth, aiLimiter, async (req, res) => {
 
     const result = await parseVoiceAnswers({
       answers: data.answers,
-      language: data.language,
+      language: /** @type {'en'|'ta'} */ (data.language),
     });
 
     return res.json({

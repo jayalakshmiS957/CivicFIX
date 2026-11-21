@@ -8,21 +8,28 @@ import { aiLimiter, supportLimiter } from '../middleware/rateLimiter.js';
 import { validateIssueInput } from '../validators/issueValidator.js';
 import { analyzeCivicIssue } from '../services/geminiService.js';
 import { calculateCommunityImpactScore } from '../services/scoringService.js';
+import { maskMobile } from '../services/otpService.js';
 
 const router = express.Router();
 
 /**
  * Format reporter object for public endpoints:
- * Removes reporter.email for non-admins; exposes only the reporter's first name.
- * Full reporter data is preserved for admin users.
+ * Removes reporter.email and mobile for non-admins; exposes only the reporter's first name.
+ * Full mobile numbers are never exposed; admins receive masked mobile if present.
  */
 function formatReporterForUser(issue, user) {
   if (!issue) return issue;
-  if (user && user.role === 'admin') {
-    return issue;
-  }
   const cloned = { ...issue };
   if (cloned.reporter) {
+    if (user && user.role === 'admin') {
+      cloned.reporter = {
+        id: cloned.reporter.id,
+        name: cloned.reporter.name,
+        email: cloned.reporter.email,
+        mobile: cloned.reporter.mobile ? maskMobile(cloned.reporter.mobile) : undefined,
+      };
+      return cloned;
+    }
     const rawName = cloned.reporter.name || 'Citizen';
     const firstName = rawName.trim().split(/\s+/)[0] || 'Citizen';
     cloned.reporter = {
@@ -178,14 +185,14 @@ router.post('/', requireAuth, aiLimiter, handleUpload, async (req, res) => {
     const locationText = `${data.location.address || ''} ${data.location.locality || ''} ${data.location.landmark || ''}`.trim();
 
     // Perform Google Gemini AI analysis
-    const aiAnalysis = await analyzeCivicIssue({
+    const aiAnalysis = /** @type {any} */ (await analyzeCivicIssue({
       title: data.title,
       description: data.description,
       requestedCategory: data.category,
       locationText,
       imageBase64,
       imageMime,
-    });
+    }));
 
     const finalCategory = data.category !== 'Let AI decide' ? data.category : aiAnalysis.category;
     const finalPriority = aiAnalysis.priority;

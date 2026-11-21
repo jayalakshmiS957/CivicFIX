@@ -509,6 +509,8 @@ export default function ComplaintDetailPage() {
             </h4>
             <form onSubmit={handleCitizenNoteSubmit} className="flex gap-2">
               <input
+                id="citizen-field-note"
+                aria-label="Append latest ground observations or landmark note"
                 type="text"
                 value={citizenNote}
                 onChange={(e) => setCitizenNote(e.target.value)}

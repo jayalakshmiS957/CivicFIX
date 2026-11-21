@@ -18,6 +18,7 @@ import {
   Menu,
   X,
   UserPlus,
+  HelpCircle,
 } from 'lucide-react';
 
 export default function Navbar() {
@@ -51,6 +52,7 @@ export default function Navbar() {
     ...(isAdmin
       ? [{ name: t('navAdmin'), path: '/admin', icon: LayoutDashboard }]
       : []),
+    { name: t('navHelp'), path: '/help', icon: HelpCircle },
   ];
 
   return (
@@ -127,6 +129,13 @@ export default function Navbar() {
               </div>
             ) : (
               <div className="flex items-center gap-2">
+                <Link
+                  to="/help"
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-control text-xs font-medium text-[#5F6368] hover:text-[#188038] hover:bg-[#F8FAF8] transition-colors"
+                >
+                  <HelpCircle className="w-3.5 h-3.5 text-[#188038]" />
+                  <span>{t('navHelp')}</span>
+                </Link>
                 {location.pathname === '/login' ? (
                   <Link
                     to="/register"
@@ -151,6 +160,13 @@ export default function Navbar() {
           {/* Mobile Header Controls */}
           <div className="flex md:hidden items-center gap-2">
             <LanguageSwitcher size="sm" />
+            <Link
+              to="/help"
+              className="p-1.5 text-[#5F6368] hover:text-[#188038]"
+              aria-label="Help & FAQ"
+            >
+              <HelpCircle className="w-4 h-4 text-[#188038]" />
+            </Link>
             {isAuthenticated ? (
               <>
                 <NotificationBell />

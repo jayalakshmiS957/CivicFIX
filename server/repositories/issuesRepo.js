@@ -192,7 +192,7 @@ class IssuesRepository {
 
   /**
    * Enriches an issue with dynamic scores (CivicVoice, Dual Priority, Trust, SLA)
-   * @param {object} issue
+   * @param {any} issue
    * @param {string} [currentUserId]
    */
   enrichIssue(issue, currentUserId = null) {
@@ -759,7 +759,7 @@ class IssuesRepository {
       const reportedEvent = issue.timeline?.find((t) => t.status === 'Reported');
       const inProgressEvent = issue.timeline?.find((t) => t.status === 'In Progress');
       if (reportedEvent && inProgressEvent) {
-        const diff = (new Date(inProgressEvent.timestamp) - new Date(reportedEvent.timestamp)) / (1000 * 60 * 60);
+        const diff = (new Date(inProgressEvent.timestamp).getTime() - new Date(reportedEvent.timestamp).getTime()) / (1000 * 60 * 60);
         if (diff >= 0) {
           d.ackHoursTotal += diff;
           d.ackCount += 1;
@@ -768,7 +768,7 @@ class IssuesRepository {
 
       const resolvedEvent = [...(issue.timeline || [])].reverse().find((t) => t.status === 'Resolved');
       if (reportedEvent && resolvedEvent) {
-        const diff = (new Date(resolvedEvent.timestamp) - new Date(reportedEvent.timestamp)) / (1000 * 60 * 60);
+        const diff = (new Date(resolvedEvent.timestamp).getTime() - new Date(reportedEvent.timestamp).getTime()) / (1000 * 60 * 60);
         if (diff >= 0) {
           d.resolveHoursTotal += diff;
           d.resolveCount += 1;
@@ -814,7 +814,7 @@ class IssuesRepository {
       const reportedEvent = issue.timeline?.find((t) => t.status === 'Reported');
       const resolvedEvent = [...(issue.timeline || [])].reverse().find((t) => t.status === 'Resolved');
       if (reportedEvent && resolvedEvent) {
-        const diff = (new Date(resolvedEvent.timestamp) - new Date(reportedEvent.timestamp)) / (1000 * 60 * 60);
+        const diff = (new Date(resolvedEvent.timestamp).getTime() - new Date(reportedEvent.timestamp).getTime()) / (1000 * 60 * 60);
         if (diff >= 0) {
           l.resolveHoursTotal += diff;
           l.resolveCount += 1;
@@ -869,7 +869,7 @@ class IssuesRepository {
         const reportedEvent = issue.timeline.find((t) => t.status === 'Reported');
         const resolvedEvent = [...issue.timeline].reverse().find((t) => t.status === 'Resolved');
         if (reportedEvent && resolvedEvent) {
-          const diffMs = new Date(resolvedEvent.timestamp) - new Date(reportedEvent.timestamp);
+          const diffMs = new Date(resolvedEvent.timestamp).getTime() - new Date(reportedEvent.timestamp).getTime();
           const hours = diffMs / (1000 * 60 * 60);
           if (hours >= 0) {
             totalResolutionHours += hours;

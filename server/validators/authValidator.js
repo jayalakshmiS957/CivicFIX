@@ -1,3 +1,5 @@
+import { normalizeIndianMobile } from '../services/otpService.js';
+
 /**
  * Sanitizes plain string input to prevent XSS and strip control characters.
  * @param {string} str
@@ -11,9 +13,30 @@ export const sanitizeText = (str) => {
 };
 
 /**
+ * Validates a standalone mobile number input
+ * @param {string} mobile
+ * @returns {{ isValid: boolean, error: string|null, mobile: string|null }}
+ */
+export const validateMobileInput = (mobile) => {
+  const normalized = normalizeIndianMobile(mobile);
+  if (!normalized) {
+    return {
+      isValid: false,
+      error: 'Please provide a valid 10-digit Indian mobile number.',
+      mobile: null,
+    };
+  }
+  return {
+    isValid: true,
+    error: null,
+    mobile: normalized,
+  };
+};
+
+/**
  * Validates registration input
- * @param {object} body
- * @returns {{ isValid: boolean, errors: Record<string, string>, data: object }}
+ * @param {Record<string, any>} [body={}]
+ * @returns {{ isValid: boolean, errors: Record<string, string>, data: { name: string, email: string, password: string, mobile: string|null } }}
  */
 export const validateRegisterInput = (body = {}) => {
   const errors = {};
@@ -35,17 +58,30 @@ export const validateRegisterInput = (body = {}) => {
     errors.password = 'Password must be at least 6 characters long.';
   }
 
+  let normalizedMobile = null;
+  if (body.mobile !== undefined && body.mobile !== null && String(body.mobile).trim() !== '') {
+    normalizedMobile = normalizeIndianMobile(String(body.mobile));
+    if (!normalizedMobile) {
+      errors.mobile = 'Please provide a valid 10-digit Indian mobile number.';
+    }
+  }
+
   return {
     isValid: Object.keys(errors).length === 0,
     errors,
-    data: { name, email, password },
+    data: {
+      name,
+      email,
+      password,
+      mobile: normalizedMobile,
+    },
   };
 };
 
 /**
  * Validates login input
- * @param {object} body
- * @returns {{ isValid: boolean, errors: Record<string, string>, data: object }}
+ * @param {Record<string, any>} [body={}]
+ * @returns {{ isValid: boolean, errors: Record<string, string>, data: { email: string, password: string } }}
  */
 export const validateLoginInput = (body = {}) => {
   const errors = {};

@@ -10,8 +10,16 @@ export default function Footer() {
   if (!isAuthenticated) {
     return (
       <footer className="bg-[#F1F3F4] border-t border-[#DADCE0] py-4 mt-auto text-center text-xs text-[#5F6368]">
-        <div className="max-w-7xl mx-auto px-4">
+        <div className="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-2">
           <p>© 2026 CivicResolve • "Your City. Your Voice. Your Impact."</p>
+          <div className="flex items-center gap-4">
+            <Link to="/help" className="text-[#188038] hover:underline">
+              Help & FAQ
+            </Link>
+            <Link to="/login" className="text-[#5F6368] hover:text-[#188038]">
+              Sign In
+            </Link>
+          </div>
         </div>
       </footer>
     );
@@ -90,7 +98,7 @@ export default function Footer() {
               "Your City. Your Voice. Your Impact."
             </p>
             <p className="text-xs text-[#5F6368] leading-relaxed max-w-2xl">
-              Citizens report civic issues (potholes, overflowing garbage, damaged streetlights, water leakage, poor roads, drainage). Using Google Gemini, the platform understands the issue, categorises it, identifies urgency, recommends the department, and tracks it from submission to resolution.
+              An AI-assisted civic complaint platform taking community reports from submission to verified municipal resolution.
             </p>
           </div>
 
@@ -114,6 +122,9 @@ export default function Footer() {
               </li>
               <li>
                 <Link to="/login" className="hover:text-[#188038] transition-colors">Demo Accounts & Login</Link>
+              </li>
+              <li>
+                <Link to="/help" className="hover:text-[#188038] transition-colors">Help & FAQ</Link>
               </li>
             </ul>
           </div>

@@ -50,7 +50,10 @@ export const VOICE_RESPONSE_SCHEMA = {
 const ALLOWED_CATEGORIES = [...VALID_CATEGORIES, 'Let AI decide'];
 
 /**
- * Validates and normalizes parsed output
+ * Validates and normalizes parsed voice assistant output against strict constraints.
+ * @param {Record<string, any>} [raw={}]
+ * @param {'en'|'ta'} [language='en']
+ * @returns {Record<string, any>} Normalized structured output
  */
 export function validateVoiceParsedOutput(raw = {}, language = 'en') {
   if (!raw || typeof raw !== 'object') {
@@ -109,7 +112,11 @@ export function validateVoiceParsedOutput(raw = {}, language = 'en') {
 }
 
 /**
- * Robust fallback parser when Gemini is unavailable, unconfigured, or times out
+ * Robust fallback parser when Gemini is unavailable, unconfigured, or times out.
+ * @param {object} params
+ * @param {Record<string, string>} [params.answers={}]
+ * @param {'en'|'ta'} [params.language='en']
+ * @returns {object} Fallback structured voice complaint
  */
 export function generateVoiceFallback({ answers = {}, language = 'en' }) {
   const isTa = language === 'ta';
@@ -234,7 +241,11 @@ Provide your assessment matching the response schema exactly.`;
 }
 
 /**
- * Public parse function with retry and resilient fallback
+ * Public parse function with retry and resilient fallback.
+ * @param {object} params
+ * @param {Record<string, string>} params.answers
+ * @param {'en'|'ta'} [params.language='en']
+ * @returns {Promise<object>}
  */
 export async function parseVoiceAnswers({ answers, language = 'en' }) {
   const isKeyConfigured =

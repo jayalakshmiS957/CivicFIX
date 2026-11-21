@@ -36,7 +36,11 @@ export const requireAuth = async (req, res, next) => {
     const user = await usersRepo.findById(decoded.id);
 
     if (!user) {
-      res.clearCookie('token');
+      res.clearCookie('token', {
+        httpOnly: true,
+        sameSite: 'lax',
+        secure: config.nodeEnv === 'production' || Boolean(process.env.VERCEL),
+      });
       return res.status(401).json({
         success: false,
         error: 'Your session expired, please sign in again',
@@ -51,7 +55,11 @@ export const requireAuth = async (req, res, next) => {
     };
     next();
   } catch (err) {
-    res.clearCookie('token');
+    res.clearCookie('token', {
+      httpOnly: true,
+      sameSite: 'lax',
+      secure: config.nodeEnv === 'production' || Boolean(process.env.VERCEL),
+    });
     return res.status(401).json({
       success: false,
       error: 'Your session expired, please sign in again',

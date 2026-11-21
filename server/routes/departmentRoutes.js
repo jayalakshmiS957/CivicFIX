@@ -100,7 +100,7 @@ router.get('/', async (req, res) => {
         }));
 
       // If location selected, surface ward office and ward officers
-      let deptInfo = { ...dept };
+      let deptInfo = /** @type {Record<string, any>} */ ({ ...dept });
       if (selectedLocation && dept.locations && dept.locations[selectedLocation]) {
         const locData = dept.locations[selectedLocation];
         deptInfo = {

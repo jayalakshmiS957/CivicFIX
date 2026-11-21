@@ -2,6 +2,7 @@ import multer from 'multer';
 import path from 'path';
 import fs from 'fs';
 import { config } from '../config.js';
+import { SECURITY_LIMITS } from '../constants.js';
 
 // Ensure uploads directory exists
 if (!fs.existsSync(config.paths.uploads)) {
@@ -20,12 +21,16 @@ const storage = multer.diskStorage({
   },
 });
 
-// Allowed MIME types
-const ALLOWED_MIME_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
-const MAX_FILE_SIZE = 4 * 1024 * 1024; // 4 MB
-
+/**
+ * Validates uploaded file MIME type and file extension.
+ * Rejects any non-image extensions or unexpected MIME types.
+ */
 const fileFilter = (_req, file, cb) => {
-  if (ALLOWED_MIME_TYPES.includes(file.mimetype)) {
+  const ext = path.extname(file.originalname || '').toLowerCase();
+  const isValidMime = SECURITY_LIMITS.ALLOWED_IMAGE_MIME_TYPES.includes(file.mimetype);
+  const isValidExt = SECURITY_LIMITS.ALLOWED_IMAGE_EXTENSIONS.includes(ext);
+
+  if (isValidMime && isValidExt) {
     cb(null, true);
   } else {
     cb(new Error('Invalid file format. Only JPG, PNG, and WebP images are allowed.'));
@@ -35,13 +40,16 @@ const fileFilter = (_req, file, cb) => {
 export const upload = multer({
   storage,
   limits: {
-    fileSize: MAX_FILE_SIZE,
+    fileSize: SECURITY_LIMITS.UPLOAD_MAX_FILE_SIZE_BYTES, // 5 MB
   },
   fileFilter,
 });
 
 /**
- * Middleware wrapper to cleanly catch Multer errors (file size, format)
+ * Middleware wrapper to cleanly catch Multer errors (file size, format).
+ * @param {import('express').Request} req
+ * @param {import('express').Response} res
+ * @param {import('express').NextFunction} next
  */
 export const handleUpload = (req, res, next) => {
   const uploadSingle = upload.single('image');
@@ -50,7 +58,7 @@ export const handleUpload = (req, res, next) => {
       if (err.code === 'LIMIT_FILE_SIZE') {
         return res.status(400).json({
           success: false,
-          error: 'Image file size exceeds the 4 MB limit.',
+          error: 'Image file size exceeds the 5 MB limit.',
         });
       }
       return res.status(400).json({

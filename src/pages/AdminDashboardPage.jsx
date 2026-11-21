@@ -921,6 +921,8 @@ export default function AdminDashboardPage() {
                 {/* Search */}
                 <div className="relative min-w-[180px] flex-1 sm:flex-none">
                   <input
+                    id="admin-queue-search"
+                    aria-label="Search complaints queue by title, ID, or ward"
                     type="text"
                     value={search}
                     onChange={(e) => updateFilters({ search: e.target.value })}
@@ -1707,10 +1709,11 @@ export default function AdminDashboardPage() {
               </div>
 
               <div>
-                <label className="block font-medium text-[#202124] mb-1">
+                <label htmlFor="work-scheduled-date" className="block font-medium text-[#202124] mb-1">
                   Scheduled Start Date
                 </label>
                 <input
+                  id="work-scheduled-date"
                   type="date"
                   value={workScheduledDate}
                   onChange={(e) => setWorkScheduledDate(e.target.value)}

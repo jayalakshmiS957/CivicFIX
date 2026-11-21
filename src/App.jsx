@@ -12,6 +12,7 @@ import ErrorBoundary from './components/ErrorBoundary.jsx';
 // Pages
 import LandingPage from './pages/LandingPage.jsx';
 import LoginPage from './pages/LoginPage.jsx';
+import AdminLoginPage from './pages/AdminLoginPage.jsx';
 import RegisterPage from './pages/RegisterPage.jsx';
 import ReportIssuePage from './pages/ReportIssuePage.jsx';
 import ComplaintDetailPage from './pages/ComplaintDetailPage.jsx';
@@ -19,6 +20,7 @@ import CivicMapPage from './pages/CivicMapPage.jsx';
 import DepartmentsPage from './pages/DepartmentsPage.jsx';
 import MyComplaintsPage from './pages/MyComplaintsPage.jsx';
 import AdminDashboardPage from './pages/AdminDashboardPage.jsx';
+import HelpPage from './pages/HelpPage.jsx';
 import { ShieldAlert, AlertTriangle } from 'lucide-react';
 
 /**
@@ -155,8 +157,14 @@ function AppContent() {
 
   return (
     <div className="min-h-screen flex flex-col bg-[#F8FAF8] text-[#202124] selection:bg-[#E6F4EA] selection:text-[#188038]">
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-50 focus:px-4 focus:py-2 focus:bg-[#188038] focus:text-white focus:text-sm focus:font-medium focus:rounded-md focus:shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#188038]"
+      >
+        Skip to main content
+      </a>
       <Navbar />
-      <main id="main-content" className="flex-1 focus:outline-none">
+      <main id="main-content" tabIndex={-1} className="flex-1 focus:outline-none">
         <ErrorBoundary>
           <Routes>
             <Route
@@ -168,7 +176,9 @@ function AppContent() {
               }
             />
             <Route path="/login" element={<LoginPage />} />
+            <Route path="/admin/login" element={<AdminLoginPage />} />
             <Route path="/register" element={<RegisterPage />} />
+            <Route path="/help" element={<HelpPage />} />
             <Route
               path="/report"
               element={

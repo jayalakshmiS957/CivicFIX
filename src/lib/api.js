@@ -60,6 +60,24 @@ export const authApi = {
       body: JSON.stringify(credentials),
     }),
 
+  adminLogin: (credentials) =>
+    request('/auth/admin-login', {
+      method: 'POST',
+      body: JSON.stringify(credentials),
+    }),
+
+  sendOtp: (payload) =>
+    request('/auth/send-otp', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    }),
+
+  verifyOtp: (payload) =>
+    request('/auth/verify-otp', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    }),
+
   register: (userData) =>
     request('/auth/register', {
       method: 'POST',

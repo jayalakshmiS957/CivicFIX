@@ -58,12 +58,8 @@ const LOW_TRIGGERS = [
 
 /**
  * Classifies an issue using keyword rules when AI service is unavailable.
- * @param {object} params
- * @param {string} params.title
- * @param {string} params.description
- * @param {string} [params.requestedCategory]
- * @param {string} [params.locationText]
- * @returns {object} Formatted AI analysis object with aiSource='fallback'
+ * @param {{ title: string, description: string, requestedCategory?: string, locationText?: string }} params
+ * @returns {Record<string, any>} Formatted AI analysis object with aiSource='fallback'
  */
 export function classifyWithKeywords({ title, description, requestedCategory, locationText = '' }) {
   const fullText = `${title || ''} ${description || ''} ${locationText || ''}`.toLowerCase();

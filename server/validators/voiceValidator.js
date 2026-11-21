@@ -1,7 +1,8 @@
 /**
  * Input validator for POST /api/voice/parse
+ * @param {Record<string, any>} [body={}]
+ * @returns {{ isValid: boolean, errors: Record<string, string>, data: { answers: { where: string, what: string, since: string, danger: string }, language: string } | null }}
  */
-
 export function validateVoiceParseInput(body = {}) {
   const errors = {};
 

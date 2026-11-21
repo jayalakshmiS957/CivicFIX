@@ -1,5 +1,4 @@
-<<<<<<< HEAD
-# CivicResolve
+# CivicResolve [![CI](https://github.com/civicresolve/civicresolve/actions/workflows/ci.yml/badge.svg)](https://github.com/civicresolve/civicresolve/actions/workflows/ci.yml)
 
 **Transforming Civic Complaints into Real-World Solutions**
 *குடிமக்கள் புகார்களை நிஜ உலகத் தீர்வுகளாக மாற்றுதல்*
@@ -7,6 +6,8 @@
 > Your City. Your Voice. Your Impact.
 
 An AI-powered, location-aware, community-driven platform that takes a civic complaint from **submission to tracking and resolution**. Built for **PromptWars x GDGoC PSG iTech 2026**, using Google Gemini.
+
+[Demo Script (3-min)](DEMO.md) • [Implementation Details](IMPLEMENTATION.md) • [Security Policy](SECURITY.md) • [License](LICENSE)
 
 ---
 
@@ -25,8 +26,9 @@ An AI-powered, location-aware, community-driven platform that takes a civic comp
 12. [Accessibility](#accessibility)
 13. [Testing](#testing)
 14. [Data storage](#data-storage)
-15. [Assumptions and limitations](#assumptions-and-limitations)
-16. [Future improvements](#future-improvements)
+15. [Documentation & Links](#documentation--links)
+16. [Assumptions and limitations](#assumptions-and-limitations)
+17. [Future improvements](#future-improvements)
 
 ---
 
@@ -48,14 +50,16 @@ CivicResolve lets citizens report an issue in under a minute. **Google Gemini** 
 ## Features
 
 ### Required by the problem statement
-| # | Expected feature | Where to find it |
-|---|---|---|
-| 1 | Citizen issue reporting (title, description, location, category, optional image) | **Report Issue** |
-| 2 | AI-powered classification with Google Gemini | AI analysis card after submit |
-| 3 | Priority detection (urgency and public impact) | Priority badge: Critical, High, Medium, Low |
-| 4 | Department recommendation | AI analysis card and issue page |
-| 5 | Issue tracking dashboard (Reported, In Progress, Resolved) | **My Complaints**, **Civic Map**, issue timeline |
-| 6 | Admin dashboard (review, update status, manage issues) | **Admin Dashboard** |
+| # | Expected feature | Page & File | Description |
+|---|---|---|---|
+| 1 | Citizen issue reporting (title, description, location, category, optional image) | **Report Issue** (`src/pages/ReportIssuePage.jsx`) | Form allowing citizens to input complaint title, description, GPS or pin map location, category selection, and optional image attachment. |
+| 2 | AI-powered classification with Google Gemini | **AI Analysis Card** (`server/services/geminiService.js`, `src/pages/ReportIssuePage.jsx`) | Multimodal evaluation analysing complaint text and uploaded photo to classify the issue domain. |
+| 3 | Priority detection (urgency and potential public impact) | **Priority Classification** (`server/services/scoringService.js`, `src/components/PriorityBadge.jsx`) | Detects urgency (Critical, High, Medium, Low) based on safety hazards, structural damage, and community impact. |
+| 4 | Department recommendation | **Routing Engine** (`server/services/geminiSchema.js`, `src/pages/DepartmentsPage.jsx`) | Recommends responsible municipal department and local ward crew with direct office contact and SLA tracking. |
+| 5 | Issue tracking dashboard (Reported, In Progress, Resolved) | **Civic Dashboard & Map** (`src/pages/LandingPage.jsx`, `src/pages/CivicMapPage.jsx`, `src/pages/MyComplaintsPage.jsx`) | Transparent tracking across full lifecycle (Reported, In Progress, Resolved, Reopened) with SLA milestones. |
+| 6 | Admin dashboard (review complaints, update statuses, manage issues) | **Admin Command Center** (`src/pages/AdminDashboardPage.jsx`, `server/routes/adminRoutes.js`) | Departmental triage queue, status updating, crew assignment, and dispute review. |
+
+**End-to-end workflow:** Submission (citizen enters title, description, location, and optional image) &rarr; AI-assisted classification (Google Gemini analyzes text and visual evidence) &rarr; Prioritization (detects urgency and potential public impact) &rarr; Department recommendation (routes to responsible municipal agency and field crew) &rarr; Status tracking and resolution (citizens monitor real-time progression from Reported to In Progress to Resolved on public timelines, with admin triage and citizen ground verification).
 
 ### Beyond the brief
 - **English and Tamil (தமிழ்) language preference:** switch the whole interface with one toggle; your choice is remembered
@@ -167,6 +171,39 @@ flowchart LR
 **Complaint lifecycle**
 `Reported` → AI analysis → `In Progress` (crew and officer assigned) → `Pending Review` (after-photo and AI check) → `Resolved` (admin confirms) → optionally `Reopened` by the citizen.
 
+### Project structure
+```text
+civicresolve/
+├── data/                  # Canonical seed JSON datasets (issues, users, supports, notifications)
+├── public/                # Static assets and WebP hero imagery
+├── server/
+│   ├── data/              # Demo accounts & Coimbatore departments directory
+│   ├── middleware/        # Auth guards, rate limiters, error handlers
+│   ├── repositories/      # Repository data layer & seed fallback
+│   ├── routes/            # API endpoints (auth, issues, admin, stats, trends, voice)
+│   ├── services/          # Gemini AI integration, scoring formulas, verification
+│   └── validators/        # Input validation and HTML sanitization
+├── src/
+│   ├── components/        # Reusable UI widgets, modals, and inline SVG charts
+│   ├── hooks/             # Custom React hooks (useAuth, useLanguage, useToast)
+│   ├── i18n/              # English and Tamil translation dictionaries
+│   ├── lib/               # API client, constants, Leaflet icons
+│   └── pages/             # Route views (Landing, Login, Report, Map, Detail, Admin)
+└── test/                  # Test suites executed with Node test runner
+```
+
+### Design decisions
+- **Repository layer:** Encapsulates the JSON file data store behind strict repository abstractions (`issuesRepo`, `usersRepo`, `supportsRepo`, `notificationsRepo`). The Express routes and frontend never interact directly with filesystem storage, enabling seamless migration to PostgreSQL, MongoDB, or Cloud Firestore with zero route refactoring.
+- **Server-side AI:** All Google Gemini API keys, structured schema definitions, system instructions, and prompt evaluations are strictly hosted on the server. Client applications never touch Gemini credentials or model parameters.
+- **Fallback classifier:** A robust deterministic keyword classifier (`server/services/keywordClassifier.js`) mirrors Gemini's structured output schema. If the Gemini API key is unset, rate-limited, or offline, the platform seamlessly classifies civic complaints with zero downtime.
+- **Additive charts:** Visualizations (SVG trend charts, locality-by-priority heat grid, SLA compliance gauge, and department workload bars) are strictly additive, safely handling missing or empty telemetry without throwing runtime exceptions.
+
+### Code quality
+- **JSDoc documentation:** Comprehensive `@param`, `@returns`, and descriptive annotations across all exported functions in `server/services`, `server/repositories`, `server/validators`, and `server/middleware`.
+- **Centralized constants:** All limits, SLA resolution hours, scoring formula weights, spatial proximity thresholds, and timeouts are unified in `server/constants.js`.
+- **Consistent API responses:** Standardized `{ success: false, error: "<string>" }` error envelope across all route handlers and middleware.
+- **Type safety:** TypeScript type checking (`npm run typecheck`) passes with zero errors via JSDoc type checking (`allowJs: true`, `checkJs: true`).
+
 ---
 
 ## Tech stack
@@ -257,6 +294,7 @@ The seed data contains 15 realistic Coimbatore complaints across all categories,
 - Prompt-injection defence for all AI calls
 - One support per citizen per issue, enforced on the server
 - Voice: audio is never stored or uploaded
+- Mobile OTP verification: Citizen registration and regular citizen logins require 6-digit OTP verification with 5-minute expiry and a 3-attempt limit. OTP verification runs in demo mode (`OTP_MODE=demo`, the default) with no real SMS sent (code `123456` returned in demo banner and response). Seeded demo citizens (`citizen1`, `citizen2`) skip OTP for instant 1-step login. Dedicated `/admin/login` enforces 2-step verification and rejects citizen accounts with 403 Forbidden. Full mobile numbers are masked (`98XXXXX210`) and never exposed on public issue endpoints.
 
 ## Accessibility
 - Semantic landmarks, one `h1` per page, skip-to-content link
@@ -272,11 +310,22 @@ The seed data contains 15 realistic Coimbatore complaints across all categories,
 ## Testing
 ```bash
 npm test
+
+# Run tests with experimental code coverage report
+npm run test:coverage
 ```
-Tests cover input validation, the keyword fallback classifier, Gemini output schema validation (mocked), status transitions, support-once enforcement, scoring formula and safety override, role guards, duplicate detection, translation fallback, and the departments and trends endpoints. Tests run against a temporary data directory and never modify the real data.
+Tests cover input validation, the keyword fallback classifier, Gemini output schema validation (mocked), status transitions, support-once enforcement, scoring formula and safety override, role guards, duplicate detection, translation fallback, the departments and trends endpoints, and security regressions. Tests run against a temporary data directory and never modify the real data.
 
 ## Data storage
 This prototype uses a **JSON-file data store behind a repository layer** (`issuesRepo`, `usersRepo`, `supportsRepo`, `notificationsRepo`). Routes and UI never touch the files directly, so the store can be replaced by Firestore or PostgreSQL without changing the API or the interface. A production deployment would use a managed database. On hosts with ephemeral disks, new complaints may reset on restart; seed data reloads automatically.
+
+---
+
+## Documentation & Links
+- [DEMO.md](DEMO.md): 3-minute step-by-step judge demonstration script using seeded demo accounts.
+- [IMPLEMENTATION.md](IMPLEMENTATION.md): Deep-dive architecture, data flow pipeline, Gemini prompt and fallback, repository abstractions, and design decisions.
+- [SECURITY.md](SECURITY.md): Key handling, authentication model, role-based guards, rate limiting, and vulnerability disclosure instructions.
+- [LICENSE](LICENSE): Open source license terms.
 
 ---
 
@@ -301,7 +350,3 @@ This prototype uses a **JSON-file data store behind a repository layer** (`issue
 
 ## Built with
 Google Gemini, Google Antigravity, React, Express, Leaflet and OpenStreetMap, for **PromptWars x GDGoC PSG iTech 2026**.
-=======
-# CivicFIX
-AI-powered civic issue reporting and resolution platform that helps citizens report local problems, track progress, and support community-driven solutions.
->>>>>>> origin/main

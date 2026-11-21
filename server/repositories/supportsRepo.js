@@ -89,8 +89,10 @@ class SupportsRepository {
 
     const already = this.supports.some((s) => s.issueId === issueId && s.userId === userId);
     if (already) {
-      const err = new Error('Citizen has already supported this civic issue. Only one support per citizen is permitted.');
-      err.statusCode = 400;
+      const err = Object.assign(
+        new Error('Citizen has already supported this civic issue. Only one support per citizen is permitted.'),
+        { statusCode: 400 }
+      );
       throw err;
     }
 

@@ -23,31 +23,62 @@ const app = express();
 // Trust proxy for reverse proxies like Vercel so rate-limiting and IP detection work correctly
 app.set('trust proxy', 1);
 
-// Security Headers
+// Security Headers with safe CSP allowing OpenStreetMap and Google Fonts
 app.use(
   helmet({
-    contentSecurityPolicy: false, // Allows OpenStreetMap tiles & CDN resources without header conflicts
+    contentSecurityPolicy: {
+      directives: {
+        defaultSrc: ["'self'"],
+        scriptSrc: ["'self'", "'unsafe-inline'"],
+        styleSrc: ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com'],
+        fontSrc: ["'self'", 'https://fonts.gstatic.com', 'data:'],
+        imgSrc: ["'self'", 'data:', 'blob:', 'https://*.tile.openstreetmap.org', 'https://tile.openstreetmap.org'],
+        connectSrc: ["'self'", 'https://nominatim.openstreetmap.org', 'https://*.tile.openstreetmap.org'],
+        mediaSrc: ["'self'"],
+        objectSrc: ["'none'"],
+      },
+    },
     crossOriginResourcePolicy: { policy: 'cross-origin' },
   })
 );
 
-// Restricted CORS
-const allowedOrigins = [
+// Restricted CORS configuration
+const defaultOrigins = [
   'http://localhost:5173',
   'http://localhost:5000',
   'http://127.0.0.1:5173',
   'http://127.0.0.1:5000',
 ];
 
+const envOrigins = (process.env.CORS_ORIGINS || '')
+  .split(',')
+  .map((o) => o.trim())
+  .filter(Boolean);
+
+const vercelOrigins = [];
+if (process.env.VERCEL_URL) {
+  vercelOrigins.push(`https://${process.env.VERCEL_URL}`);
+  vercelOrigins.push(`http://${process.env.VERCEL_URL}`);
+}
+
+const allowedOriginsSet = new Set([...defaultOrigins, ...envOrigins, ...vercelOrigins]);
+
 app.use(
   cors({
     origin: (origin, callback) => {
-      // Allow requests with no origin (like mobile apps, curl, or same-origin)
-      if (!origin || allowedOrigins.includes(origin)) {
-        callback(null, true);
-      } else {
-        callback(null, true); // Fallback permissive for local network demo evaluation
+      // Do not block requests with no Origin header (same-origin, curl, mobile)
+      if (!origin) {
+        return callback(null, true);
       }
+
+      if (
+        allowedOriginsSet.has(origin) ||
+        (process.env.VERCEL_URL && origin.includes('.vercel.app'))
+      ) {
+        return callback(null, true);
+      }
+
+      return callback(new Error(`CORS blocked: Origin ${origin} not allowed.`));
     },
     credentials: true,
   })

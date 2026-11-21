@@ -177,6 +177,7 @@ export default function CivicMapPage() {
             <div className="relative min-w-[160px] sm:w-48 flex-1 sm:flex-none">
               <input
                 type="text"
+                aria-label="Search map by location or issue ID"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search location or ID..."
@@ -267,6 +268,12 @@ export default function CivicMapPage() {
       <div className="flex-1 flex flex-col md:flex-row overflow-hidden relative">
         {/* Leaflet Map Pane */}
         <div className="flex-1 h-[50vh] md:h-full relative z-10">
+          <a
+            href="#map-issues-panel"
+            className="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-30 focus:px-3 focus:py-1.5 focus:bg-[#188038] focus:text-white focus:text-xs focus:font-medium focus:rounded-md focus:shadow-md outline-none"
+          >
+            Skip map and view issues list
+          </a>
           {loading ? (
             <div className="h-full flex items-center justify-center bg-[#F8F9FA]">
               <Loader2 className="w-8 h-8 text-[#188038] animate-spin" />
@@ -276,6 +283,7 @@ export default function CivicMapPage() {
               center={[COIMBATORE_CENTER.lat, COIMBATORE_CENTER.lng]}
               zoom={13}
               className="h-full w-full"
+              aria-label="Interactive Civic Issues Map"
             >
               <TileLayer
                 attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
@@ -402,7 +410,11 @@ export default function CivicMapPage() {
         </div>
 
         {/* Accessible Side Pane */}
-        <div className="w-full md:w-96 h-[50vh] md:h-full bg-white border-t md:border-t-0 md:border-l border-[#DADCE0] flex flex-col z-20">
+        <div
+          id="map-issues-panel"
+          tabIndex={-1}
+          className="w-full md:w-96 h-[50vh] md:h-full bg-white border-t md:border-t-0 md:border-l border-[#DADCE0] flex flex-col z-20 focus:outline-none"
+        >
           <div className="p-2 border-b border-[#DADCE0] bg-[#F8F9FA] flex items-center justify-between">
             <div className="flex items-center gap-1">
               <button

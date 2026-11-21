@@ -3,8 +3,8 @@ import { VALID_CATEGORIES, VALID_PRIORITIES, VALID_DEPARTMENTS } from '../servic
 
 /**
  * Validates new issue report payload
- * @param {object} body
- * @returns {{ isValid: boolean, errors: Record<string, string>, data: object }}
+ * @param {Record<string, any>} [body={}]
+ * @returns {{ isValid: boolean, errors: Record<string, string>, data: { title: string, description: string, category: string, location: { latitude: number, longitude: number, address: string, locality: string, landmark: string } } }}
  */
 export const validateIssueInput = (body = {}) => {
   const errors = {};
@@ -82,8 +82,8 @@ export const isValidStatusTransition = (currentStatus, nextStatus) => {
 
 /**
  * Validates admin override payload
- * @param {object} body
- * @returns {{ isValid: boolean, errors: Record<string, string>, data: object }}
+ * @param {Record<string, any>} [body={}]
+ * @returns {{ isValid: boolean, errors: Record<string, string>, data: { category?: string, priority?: string, department?: string, adminNotes?: string } }}
  */
 export const validateAdminOverride = (body = {}) => {
   const errors = {};

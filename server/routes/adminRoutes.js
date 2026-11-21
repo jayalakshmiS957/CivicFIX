@@ -88,12 +88,12 @@ router.post('/issues/:id/verify-repair', handleUpload, async (req, res) => {
     }
 
     // Call AI resolution verification comparing before and after
-    const aiVerification = await verifyRepairWithAI({
+    const aiVerification = /** @type {any} */ (await verifyRepairWithAI({
       issueTitle: issue.title,
       issueDescription: issue.description,
       beforeImagePath,
       afterImagePath,
-    });
+    }));
 
     const needsManualReview = typeof aiVerification.confidence === 'number' && aiVerification.confidence < 0.7;
 

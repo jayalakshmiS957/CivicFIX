@@ -1,147 +1,19 @@
 /**
- * CivicResolve Scoring & Spatial Intelligence Engine
- * Dual Priority System, Spatial Haversine, Text Token Overlap, and SLA Rules
+ * CivicResolve Scoring Intelligence Engine
+ * Dual Priority System, Community Impact, Aging, Civic Trust Score, and SLA Rules.
+ * Spatial and text similarity algorithms are modularized into geoService.js.
  */
 
-/**
- * Calculate great-circle distance between two GPS coordinates using the Haversine formula.
- * @param {number} lat1
- * @param {number} lon1
- * @param {number} lat2
- * @param {number} lon2
- * @returns {number} Distance in meters
- */
-export function haversineDistance(lat1, lon1, lat2, lon2) {
-  const toRad = (x) => (x * Math.PI) / 180;
-  const R = 6371000; // Earth radius in meters
+import { SLA_HOURS, SCORING_WEIGHTS } from '../constants.js';
 
-  const dLat = toRad(lat2 - lat1);
-  const dLon = toRad(lon2 - lon1);
-
-  const a =
-    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-    Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLon / 2) * Math.sin(dLon / 2);
-
-  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-  return Math.round(R * c);
-}
-
-/**
- * Tokenize and normalize text for lexical comparison
- * @param {string} text
- * @returns {Set<string>}
- */
-function tokenize(text) {
-  if (!text) return new Set();
-  const STOP_WORDS = new Set([
-    'the', 'is', 'at', 'which', 'on', 'a', 'an', 'and', 'or', 'in', 'of', 'for', 'to',
-    'near', 'road', 'street', 'with', 'from', 'by', 'as', 'it', 'this', 'that'
-  ]);
-
-  const clean = text.toLowerCase().replace(/[^a-z0-9\s]/g, ' ');
-  const tokens = clean
-    .split(/\s+/)
-    .filter((w) => w.length > 2 && !STOP_WORDS.has(w));
-
-  return new Set(tokens);
-}
-
-/**
- * Calculate Jaccard token overlap similarity between two text snippets (0.0 to 1.0)
- * @param {string} text1
- * @param {string} text2
- * @returns {number}
- */
-export function calculateTextSimilarity(text1, text2) {
-  const set1 = tokenize(text1);
-  const set2 = tokenize(text2);
-
-  if (set1.size === 0 || set2.size === 0) return 0;
-
-  let intersection = 0;
-  for (const token of set1) {
-    if (set2.has(token)) {
-      intersection += 1;
-    }
-  }
-
-  const union = new Set([...set1, ...set2]).size;
-  return union === 0 ? 0 : parseFloat((intersection / union).toFixed(3));
-}
-
-/**
- * Check if a new report is a likely duplicate of existing open issues
- * Criteria: Same category, within 200m radius, and token overlap score > 0.2
- * @param {object} params
- * @param {string} params.title
- * @param {string} params.description
- * @param {string} params.category
- * @param {number} params.latitude
- * @param {number} params.longitude
- * @param {Array<object>} params.openIssues
- * @returns {Array<{ issue: object, distanceMeters: number, similarityScore: number }>}
- */
-export function findPotentialDuplicates({ title, description, category, latitude, longitude, openIssues = [] }) {
-  const newText = `${title || ''} ${description || ''}`;
-  const duplicates = [];
-
-  for (const issue of openIssues) {
-    if (issue.status === 'Resolved') continue;
-
-    // Must be in the same civic category
-    if (issue.category.toLowerCase() !== category.toLowerCase()) continue;
-
-    const lat = issue.location?.latitude;
-    const lng = issue.location?.longitude;
-    if (!lat || !lng) continue;
-
-    const distance = haversineDistance(latitude, longitude, lat, lng);
-    if (distance <= 200) {
-      const existingText = `${issue.title || ''} ${issue.description || ''}`;
-      const sim = calculateTextSimilarity(newText, existingText);
-
-      // Either close proximity with keyword overlap, or identical landmark location
-      if (sim >= 0.15 || distance <= 40) {
-        duplicates.push({
-          issue,
-          distanceMeters: distance,
-          similarityScore: sim,
-        });
-      }
-    }
-  }
-
-  return duplicates.sort((a, b) => b.similarityScore - a.similarityScore);
-}
-
-/**
- * Find all issues within a given radius in kilometers
- * @param {number} centerLat
- * @param {number} centerLng
- * @param {number} radiusKm
- * @param {Array<object>} issues
- */
-export function findNearbyIssues(centerLat, centerLng, radiusKm, issues = []) {
-  const radiusMeters = radiusKm * 1000;
-  const nearby = [];
-
-  for (const issue of issues) {
-    const lat = issue.location?.latitude;
-    const lng = issue.location?.longitude;
-    if (!lat || !lng) continue;
-
-    const dist = haversineDistance(centerLat, centerLng, lat, lng);
-    if (dist <= radiusMeters) {
-      nearby.push({
-        ...issue,
-        distanceMeters: dist,
-        distanceKm: parseFloat((dist / 1000).toFixed(2)),
-      });
-    }
-  }
-
-  return nearby.sort((a, b) => a.distanceMeters - b.distanceMeters);
-}
+// Pure re-export of spatial intelligence functions for 100% backward compatibility
+export {
+  haversineDistance,
+  tokenize,
+  calculateTextSimilarity,
+  findPotentialDuplicates,
+  findNearbyIssues,
+} from './geoService.js';
 
 /**
  * Normalise community support count into a 0-100 Community Impact Score (C)
@@ -151,7 +23,7 @@ export function findNearbyIssues(centerLat, centerLng, radiusKm, issues = []) {
  * @returns {number} Score between 0 and 100
  */
 export function calculateCommunityImpactScore(supportsCount = 0) {
-  const n = Math.max(0, parseInt(supportsCount, 10) || 0);
+  const n = Math.max(0, Math.floor(Number(supportsCount)) || 0);
   if (n === 0) return 0;
   // Natural log scaling capped at 50 supports = 100 score
   const score = Math.round((Math.log(1 + n) / Math.log(51)) * 100);
@@ -204,7 +76,11 @@ export function calculateCombinedPlanningScore({ A = 50, C = 0, P = 50, T = 10, 
   const cleanT = Math.max(0, Math.min(100, Math.round(T)));
 
   // S = 0.35*A + 0.25*C + 0.25*P + 0.15*T
-  const rawS = 0.35 * cleanA + 0.25 * cleanC + 0.25 * cleanP + 0.15 * cleanT;
+  const rawS =
+    SCORING_WEIGHTS.SEVERITY_AI * cleanA +
+    SCORING_WEIGHTS.COMMUNITY_IMPACT * cleanC +
+    SCORING_WEIGHTS.LOCATION_PRIORITY * cleanP +
+    SCORING_WEIGHTS.TIME_AGING * cleanT;
   const S = parseFloat(rawS.toFixed(1));
 
   let impactLabel = 'Low Impact';
@@ -235,7 +111,7 @@ export function calculateCombinedPlanningScore({ A = 50, C = 0, P = 50, T = 10, 
  * 4. Duplicate/corroborating reports nearby (+15)
  * 5. Community supporters count (up to +15)
  *
- * @param {object} params
+ * @param {{ hasImage?: boolean, imageMatchesDescription?: boolean|null, isGpsCaptured?: boolean, corroboratingCount?: number, supportsCount?: number }} [params]
  * @returns {{ score: number, breakdown: Array<{ factor: string, points: number, max: number, status: string }> }}
  */
 export function calculateCivicTrustScore({
@@ -244,7 +120,7 @@ export function calculateCivicTrustScore({
   isGpsCaptured = false,
   corroboratingCount = 0,
   supportsCount = 0,
-}) {
+} = {}) {
   const breakdown = [];
 
   // Factor 1: Image presence
@@ -293,7 +169,7 @@ export function calculateCivicTrustScore({
   });
 
   // Factor 5: Citizen Support
-  const suppPts = Math.min(15, (parseInt(supportsCount, 10) || 0) * 3);
+  const suppPts = Math.min(15, (Math.floor(Number(supportsCount)) || 0) * 3);
   breakdown.push({
     factor: 'Community Endorsement',
     points: suppPts,
@@ -316,7 +192,7 @@ export function calculateCivicTrustScore({
  * - Medium: 7 days (168 hours)
  * - Low: 14 days (336 hours)
  *
- * @param {object} issue
+ * @param {any} issue
  * @returns {{ isOverdue: boolean, hoursElapsed: number, slaHours: number, overdueHours: number }}
  */
 export function checkSlaStatus(issue) {
@@ -324,14 +200,7 @@ export function checkSlaStatus(issue) {
     return { isOverdue: false, hoursElapsed: 0, slaHours: 0, overdueHours: 0 };
   }
 
-  const SLA_MAP = {
-    Critical: 24,
-    High: 72,
-    Medium: 168,
-    Low: 336,
-  };
-
-  const slaHours = SLA_MAP[issue.priority] || 168;
+  const slaHours = SLA_HOURS[issue.priority] || SLA_HOURS.Medium;
   const created = new Date(issue.createdAt).getTime();
   const hoursElapsed = Math.max(0, (Date.now() - created) / (1000 * 60 * 60));
 

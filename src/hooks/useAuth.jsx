@@ -35,6 +35,9 @@ export function AuthProvider({ children }) {
   const login = async (credentials) => {
     try {
       const data = await authApi.login(credentials);
+      if (data?.requiresOtp) {
+        return data;
+      }
       setUser(data.user);
       setSessionExpiredMessage('');
       return { success: true, user: data.user, ...data.user };
@@ -44,9 +47,37 @@ export function AuthProvider({ children }) {
       if (typeof rawErr === 'string' && rawErr.trim() && rawErr !== '[object Object]') {
         errMsg = rawErr;
       }
+      const isAdminAccount =
+        rawErr?.toLowerCase().includes('administrator account') ||
+        rawErr?.toLowerCase().includes('/admin/login') ||
+        err?.status === 403;
       return {
         success: false,
         error: errMsg,
+        isAdminAccount,
+      };
+    }
+  };
+
+  const adminLogin = async (credentials) => {
+    try {
+      const data = await authApi.adminLogin(credentials);
+      if (data?.requiresOtp) {
+        return data;
+      }
+      setUser(data.user);
+      setSessionExpiredMessage('');
+      return { success: true, user: data.user, ...data.user };
+    } catch (err) {
+      let rawErr = err?.message;
+      let errMsg = 'Incorrect administrator email or password';
+      if (typeof rawErr === 'string' && rawErr.trim() && rawErr !== '[object Object]') {
+        errMsg = rawErr;
+      }
+      return {
+        success: false,
+        error: errMsg,
+        status: err?.status,
       };
     }
   };
@@ -81,6 +112,7 @@ export function AuthProvider({ children }) {
         sessionExpiredMessage,
         clearSessionExpired,
         login,
+        adminLogin,
         register,
         logout,
         refreshUser: checkSession,

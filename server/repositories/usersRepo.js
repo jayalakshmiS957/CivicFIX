@@ -91,7 +91,9 @@ class UsersRepository {
       this.persist();
     }
 
-    console.log('[Auth] Active demo accounts: ' + DEMO_ACCOUNTS.map((d) => d.email).join(', '));
+    if (config.nodeEnv !== 'test') {
+      console.log('[Auth] Active demo accounts: ' + DEMO_ACCOUNTS.map((d) => d.email).join(', '));
+    }
   }
 
   /**
@@ -111,6 +113,7 @@ class UsersRepository {
   /**
    * Find user by unique email (case-insensitive)
    * @param {string} email
+   * @returns {Promise<any|null>}
    */
   async findByEmail(email) {
     if (!email) return null;
@@ -121,6 +124,7 @@ class UsersRepository {
   /**
    * Find user by id
    * @param {string} id
+   * @returns {Promise<any|null>}
    */
   async findById(id) {
     if (!id) return null;
@@ -130,7 +134,7 @@ class UsersRepository {
   /**
    * Find all users by role
    * @param {'citizen'|'admin'} role
-   * @returns {Array<object>}
+   * @returns {Promise<Array<any>>}
    */
   async findByRole(role) {
     if (!role) return [];
@@ -143,9 +147,11 @@ class UsersRepository {
    * @param {string} params.name
    * @param {string} params.email
    * @param {string} params.password
+   * @param {string} [params.mobile]
    * @param {'citizen'|'admin'} [params.role='citizen']
+   * @returns {Promise<any>}
    */
-  async create({ name, email, password, role = 'citizen' }) {
+  async create({ name, email, password, role = 'citizen', mobile = null }) {
     const existing = await this.findByEmail(email);
     if (existing) {
       throw new Error('An account with this email address already exists.');
@@ -159,6 +165,7 @@ class UsersRepository {
       id,
       name: name.trim(),
       email: email.trim().toLowerCase(),
+      mobile: mobile || null,
       passwordHash,
       role: role === 'admin' ? 'admin' : 'citizen',
       createdAt: new Date().toISOString(),
@@ -171,6 +178,7 @@ class UsersRepository {
       id: newUser.id,
       name: newUser.name,
       email: newUser.email,
+      mobile: newUser.mobile,
       role: newUser.role,
       createdAt: newUser.createdAt,
     };
@@ -180,6 +188,7 @@ class UsersRepository {
    * Verifies a password against the stored bcrypt hash
    * @param {string} plainPassword
    * @param {string} hash
+   * @returns {Promise<boolean>}
    */
   async verifyPassword(plainPassword, hash) {
     return bcrypt.compare(plainPassword, hash);
@@ -187,6 +196,7 @@ class UsersRepository {
 
   /**
    * Return all users (stripped of password hashes)
+   * @returns {Promise<Array<any>>}
    */
   async getAll() {
     return this.users.map(({ passwordHash, ...safeUser }) => safeUser);

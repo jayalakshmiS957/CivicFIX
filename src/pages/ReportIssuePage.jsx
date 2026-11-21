@@ -437,6 +437,8 @@ export default function ReportIssuePage() {
 
               <form onSubmit={handleFollowUpSubmit} className="pt-2 flex gap-2">
                 <input
+                  id="clarifying-details-input"
+                  aria-label="Clarifying details response"
                   type="text"
                   value={followUpAnswer}
                   onChange={(e) => setFollowUpAnswer(e.target.value)}
@@ -492,7 +494,7 @@ export default function ReportIssuePage() {
             Report a Civic Issue
           </h1>
           <p className="text-xs text-[#5F6368] mt-1">
-            Describe the civic problem. Google Gemini AI will inspect, categorize, and route it to city hall.
+            Submit a civic issue with location and photo. Gemini AI handles categorization and routing.
           </p>
         </div>
 
@@ -590,7 +592,7 @@ export default function ReportIssuePage() {
             ))}
           </select>
           <p className="text-[11px] text-[#5F6368] mt-1">
-            Leave as "Let AI decide" and Google Gemini will automatically detect the civic domain.
+            Gemini AI automatically detects the category if left as "Let AI decide".
           </p>
         </div>
 

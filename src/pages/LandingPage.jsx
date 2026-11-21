@@ -102,19 +102,7 @@ export default function LandingPage() {
               <p className="text-sm font-semibold text-[#188038] uppercase tracking-wider pt-1">
                 "Your City. Your Voice. Your Impact."
               </p>
-              <p className="text-xs text-[#5F6368] italic">
-                {t('stepTowardsBetterCity')}
-              </p>
             </div>
-
-            {/* Hero Action Headline */}
-            <h2 className="text-2xl sm:text-3xl md:text-4xl font-medium font-heading text-[#202124] tracking-tight pt-2">
-              Report it. Route it. <span className="text-[#188038]">Resolve it.</span>
-            </h2>
-
-            <p className="text-base sm:text-lg text-[#5F6368] font-normal leading-relaxed max-w-2xl mx-auto">
-              Powered by Google Gemini to transform citizen reports of potholes, broken streetlights, water leaks, and garbage into prioritized municipal action.
-            </p>
 
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4">
               {!isAdmin ? (

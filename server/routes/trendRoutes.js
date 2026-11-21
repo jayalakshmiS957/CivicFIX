@@ -25,6 +25,10 @@ function matchLocality(issue, targetLocality) {
   return locality.includes(target) || address.includes(target);
 }
 
+/**
+ * Computes 10-day trends, locality priority matrix, and SLA compliance metrics.
+ * @returns {Promise<{ days: Array<{date: string, reported: number, resolved: number}>, byLocalityPriority: Array<object>, slaCompliancePercent: number, overdueCount: number }>}
+ */
 export async function computeTrends() {
   const issues = await issuesRepo.getAll();
 
@@ -139,6 +143,9 @@ async function handleGetTrends(_req, res) {
   }
 }
 
+/**
+ * Clears the 30-second in-memory trends cache (primarily for tests).
+ */
 export function clearTrendsCache() {
   trendsCache = null;
   cacheTime = 0;

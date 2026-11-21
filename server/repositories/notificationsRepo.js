@@ -63,7 +63,7 @@ class NotificationsRepository {
   /**
    * Get notifications for a user sorted newest first
    * @param {string} userId
-   * @returns {Array<object>}
+   * @returns {Array<any>}
    */
   getByUserId(userId) {
     if (!userId) return [];
@@ -74,7 +74,8 @@ class NotificationsRepository {
 
   /**
    * Create a new notification
-   * @param {object} params
+   * @param {{ userId: string, issueId: string, title: string, message: string }} params
+   * @returns {any}
    */
   create({ userId, issueId, title, message }) {
     const newNotif = {
