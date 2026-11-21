@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useDeferredValue } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { departmentsApi } from '../lib/api.js';
 import { useToast } from '../hooks/useToast.jsx';
@@ -97,6 +97,7 @@ export default function DepartmentsPage() {
 
   // Filters
   const [searchQuery, setSearchQuery] = useState('');
+  const deferredSearchQuery = useDeferredValue(searchQuery);
   const [selectedPriority, setSelectedPriority] = useState('All');
 
   const { isAdmin } = useAuth();
@@ -210,7 +211,7 @@ export default function DepartmentsPage() {
 
   // Filter departments and their active issues
   const filteredDepartments = useMemo(() => {
-    const q = searchQuery.toLowerCase().trim();
+    const q = deferredSearchQuery.toLowerCase().trim();
 
     const result = departments.map((dept) => {
       // Filter issues by priority
@@ -259,7 +260,7 @@ export default function DepartmentsPage() {
     }
 
     return result;
-  }, [departments, searchQuery, selectedPriority, selectedLocation]);
+  }, [departments, deferredSearchQuery, selectedPriority, selectedLocation]);
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 space-y-8">

@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useDeferredValue } from 'react';
 import { useLanguage } from '../hooks/useLanguage.jsx';
 import {
   HelpCircle,
@@ -36,6 +36,7 @@ const FAQ_ITEMS = [
 export default function HelpPage() {
   const { t } = useLanguage();
   const [searchQuery, setSearchQuery] = useState('');
+  const deferredSearchQuery = useDeferredValue(searchQuery);
   const [openIds, setOpenIds] = useState(new Set([1])); // First FAQ open by default
 
   const toggleAccordion = (id) => {
@@ -51,7 +52,7 @@ export default function HelpPage() {
   };
 
   const filteredFaqs = useMemo(() => {
-    const q = searchQuery.toLowerCase().trim();
+    const q = deferredSearchQuery.toLowerCase().trim();
     if (!q) return FAQ_ITEMS;
 
     return FAQ_ITEMS.filter((item) => {
@@ -60,7 +61,7 @@ export default function HelpPage() {
       const category = item.category.toLowerCase();
       return question.includes(q) || answer.includes(q) || category.includes(q);
     });
-  }, [searchQuery, t]);
+  }, [deferredSearchQuery, t]);
 
   return (
     <div className="min-h-screen bg-[#F8FAF8] py-8 sm:py-12 px-4 sm:px-6 lg:px-8">

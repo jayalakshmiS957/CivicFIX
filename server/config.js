@@ -62,7 +62,11 @@ if (isTest) {
 
 let jwtSecret = process.env.JWT_SECRET;
 if (!jwtSecret || !jwtSecret.trim()) {
-  console.warn('[Config Warning] JWT_SECRET is missing. Using stable fallback secret for session signing.');
+  if (process.env.NODE_ENV === 'production') {
+    console.warn('[SECURITY CRITICAL] JWT_SECRET is not set in production! A fallback secret is being used. Set JWT_SECRET in environment variables immediately.');
+  } else {
+    console.warn('[Config Warning] JWT_SECRET is missing. Using stable fallback secret for session signing.');
+  }
   jwtSecret = 'civicresolve_super_secure_jwt_secret_key_2026_gdgoc';
 }
 

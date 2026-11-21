@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useDeferredValue } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import { issuesApi } from '../lib/api.js';
@@ -44,6 +44,7 @@ export default function CivicMapPage() {
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [selectedPriority, setSelectedPriority] = useState('All');
   const [searchQuery, setSearchQuery] = useState(locationParam);
+  const deferredSearchQuery = useDeferredValue(searchQuery);
 
   // Selected coords for panning
   const [selectedIssue, setSelectedIssue] = useState(() => {
@@ -131,8 +132,8 @@ export default function CivicMapPage() {
       if (selectedStatus !== 'All' && iss.status !== selectedStatus) return false;
       if (selectedCategory !== 'All' && iss.category !== selectedCategory) return false;
       if (selectedPriority !== 'All' && iss.priority !== selectedPriority) return false;
-      if (searchQuery.trim()) {
-        const q = searchQuery.toLowerCase();
+      if (deferredSearchQuery.trim()) {
+        const q = deferredSearchQuery.toLowerCase();
         const matchTitle = iss.title?.toLowerCase().includes(q);
         const matchLoc = iss.location?.locality?.toLowerCase().includes(q) || iss.location?.address?.toLowerCase().includes(q);
         const matchId = iss.id?.toLowerCase().includes(q);
@@ -140,7 +141,7 @@ export default function CivicMapPage() {
       }
       return true;
     });
-  }, [issues, selectedStatus, selectedCategory, selectedPriority, searchQuery]);
+  }, [issues, selectedStatus, selectedCategory, selectedPriority, deferredSearchQuery]);
 
   const handleIssueSelect = (issue) => {
     if (!issue.location?.latitude || !issue.location?.longitude) return;

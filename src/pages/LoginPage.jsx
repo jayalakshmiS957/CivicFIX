@@ -25,6 +25,27 @@ const FALLBACK_CITIZEN_ACCOUNTS = [
   },
 ];
 
+/**
+ * Validates and sanitizes returnTo redirect target to prevent open redirect vulnerabilities.
+ * Target must be a safe local path (e.g. '/issues/123').
+ */
+function getSafeReturnTo(target, fallback = null) {
+  if (!target || typeof target !== 'string') return fallback;
+  const trimmed = target.trim();
+  if (trimmed.startsWith('/') && !trimmed.startsWith('//') && !trimmed.includes('\\')) {
+    if (
+      trimmed === '/login' ||
+      trimmed.startsWith('/login?') ||
+      trimmed === '/admin/login' ||
+      trimmed.startsWith('/admin/login?')
+    ) {
+      return fallback;
+    }
+    return trimmed;
+  }
+  return fallback;
+}
+
 export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -40,6 +61,7 @@ export default function LoginPage() {
 
   const [searchParams] = useSearchParams();
   const returnTo = searchParams.get('returnTo');
+  const safeReturnTo = getSafeReturnTo(returnTo, null);
   const messageParam = searchParams.get('message');
 
   const { user, login, sessionExpiredMessage, clearSessionExpired } = useAuth();
@@ -50,15 +72,15 @@ export default function LoginPage() {
   // If already authenticated, redirect to destination or home/admin
   useEffect(() => {
     if (user) {
-      if (returnTo && returnTo !== '/' && returnTo !== '/login') {
-        navigate(returnTo, { replace: true });
+      if (safeReturnTo && safeReturnTo !== '/') {
+        navigate(safeReturnTo, { replace: true });
       } else if (user.role === 'admin') {
         navigate('/admin', { replace: true });
       } else {
         navigate('/', { replace: true });
       }
     }
-  }, [user, returnTo, navigate]);
+  }, [user, safeReturnTo, navigate]);
 
   // Fetch demo accounts from backend and keep ONLY citizen accounts
   useEffect(() => {
@@ -103,8 +125,8 @@ export default function LoginPage() {
 
     if (result.success && !result.requiresOtp) {
       showToast(`Welcome back, ${result.user.name}!`, 'success');
-      if (returnTo && returnTo !== '/' && returnTo !== '/login') {
-        navigate(returnTo);
+      if (safeReturnTo && safeReturnTo !== '/') {
+        navigate(safeReturnTo);
       } else {
         navigate('/');
       }
@@ -138,8 +160,8 @@ export default function LoginPage() {
 
     if (result.success && !result.requiresOtp) {
       showToast(`Welcome back, ${result.user.name}!`, 'success');
-      if (returnTo && returnTo !== '/' && returnTo !== '/login') {
-        navigate(returnTo);
+      if (safeReturnTo && safeReturnTo !== '/') {
+        navigate(safeReturnTo);
       } else {
         navigate('/');
       }

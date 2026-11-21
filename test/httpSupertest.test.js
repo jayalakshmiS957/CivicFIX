@@ -7,6 +7,7 @@ import { app } from '../server/index.js';
 import { usersRepo } from '../server/repositories/usersRepo.js';
 import { issuesRepo } from '../server/repositories/issuesRepo.js';
 import { supportsRepo } from '../server/repositories/supportsRepo.js';
+import { verifyRepairWithAI } from '../server/services/verificationService.js';
 
 describe('HTTP-Level Integration Test Suite (Supertest & Temp Data Store)', () => {
   let citizen1Cookie = '';
@@ -264,5 +265,88 @@ describe('HTTP-Level Integration Test Suite (Supertest & Temp Data Store)', () =
     assert.equal(res.status, 404);
     assert.equal(res.body.success, false);
     assert.match(res.body.error, /not found/i);
+  });
+
+  // 18. Admin status transition & citizen guard
+  it('18. PATCH /api/admin/issues/:id/status transitions status for admin, rejects citizen with 403', async () => {
+    const reportedIssue = issuesRepo.issues.find((i) => i.status === 'Reported');
+    assert.ok(reportedIssue, 'Must find an issue in Reported state');
+
+    // Citizen attempt -> 403
+    const citRes = await request(app)
+      .patch(`/api/admin/issues/${reportedIssue.id}/status`)
+      .set('Cookie', citizen1Cookie)
+      .send({ status: 'In Progress', note: 'Attempting unauthorized status update' });
+
+    assert.equal(citRes.status, 403);
+    assert.equal(citRes.body.success, false);
+
+    // Admin attempt -> 200
+    const adminRes = await request(app)
+      .patch(`/api/admin/issues/${reportedIssue.id}/status`)
+      .set('Cookie', adminCookie)
+      .send({
+        status: 'In Progress',
+        note: 'Assigned crew dispatched to location',
+        assignedTo: 'Road Maintenance Unit 3',
+        officer: 'Er. R. Sundaralingam',
+      });
+
+    assert.equal(adminRes.status, 200);
+    assert.equal(adminRes.body.success, true);
+    assert.equal(adminRes.body.issue.status, 'In Progress');
+    assert.ok(adminRes.body.issue.timeline.some((t) => t.status === 'In Progress'));
+  });
+
+  // 19. Admin override parameters
+  it('19. PATCH /api/admin/issues/:id/override updates priority and department for admin', async () => {
+    const targetIssue = issuesRepo.issues[0];
+    assert.ok(targetIssue);
+
+    const res = await request(app)
+      .patch(`/api/admin/issues/${targetIssue.id}/override`)
+      .set('Cookie', adminCookie)
+      .send({
+        priority: 'High',
+        department: 'Public Works Department',
+        assignedTo: 'Special Response Team',
+        slaHours: 24,
+      });
+
+    assert.equal(res.status, 200);
+    assert.equal(res.body.success, true);
+    assert.equal(res.body.issue.priority, 'High');
+  });
+
+  // 20. Disallowed file upload rejection
+  it('20. POST /api/issues rejects disallowed non-image file uploads with 400', async () => {
+    const res = await request(app)
+      .post('/api/issues')
+      .set('Cookie', citizen1Cookie)
+      .field('title', 'Pothole on Cross Cut Road')
+      .field('description', 'Large road hazard near signal with active traffic congestion.')
+      .field('category', 'Roads & Potholes')
+      .field('latitude', '11.0168')
+      .field('longitude', '76.9673')
+      .attach('image', Buffer.from('MZ fake binary executable'), 'malicious_script.exe');
+
+    assert.equal(res.status, 400);
+    assert.equal(res.body.success, false);
+    assert.match(res.body.error, /Only JPG, PNG, and WebP images are allowed/i);
+  });
+
+  // 21. AI verification fallback
+  it('21. verifyRepairWithAI returns standard schema with fallback when API key is missing', async () => {
+    const result = await verifyRepairWithAI({
+      issueTitle: 'Damaged Pavement at Cross Cut Road',
+      issueDescription: 'Pavement slabs cracked and displaced.',
+    });
+
+    assert.ok(result, 'Must return verification assessment');
+    assert.equal(typeof result.repair_appears_complete, 'boolean');
+    assert.equal(typeof result.confidence, 'number');
+    assert.equal(typeof result.observations, 'string');
+    assert.equal(typeof result.needs_manual_review, 'boolean');
+    assert.equal(result.source, 'fallback');
   });
 });

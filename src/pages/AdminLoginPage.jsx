@@ -16,6 +16,27 @@ const ADMIN_DEMO_ACCOUNT = {
   description: 'Full municipal triage & administrative override authority',
 };
 
+/**
+ * Validates and sanitizes returnTo redirect target to prevent open redirect vulnerabilities.
+ * Target must be a safe local path (e.g. '/admin/issues').
+ */
+function getSafeReturnTo(target, fallback = '/admin') {
+  if (!target || typeof target !== 'string') return fallback;
+  const trimmed = target.trim();
+  if (trimmed.startsWith('/') && !trimmed.startsWith('//') && !trimmed.includes('\\')) {
+    if (
+      trimmed === '/login' ||
+      trimmed.startsWith('/login?') ||
+      trimmed === '/admin/login' ||
+      trimmed.startsWith('/admin/login?')
+    ) {
+      return fallback;
+    }
+    return trimmed;
+  }
+  return fallback;
+}
+
 export default function AdminLoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -27,6 +48,7 @@ export default function AdminLoginPage() {
 
   const [searchParams] = useSearchParams();
   const returnTo = searchParams.get('returnTo');
+  const safeReturnTo = getSafeReturnTo(returnTo, '/admin');
 
   const { user, adminLogin } = useAuth();
   const { showToast } = useToast();
@@ -36,10 +58,10 @@ export default function AdminLoginPage() {
   useEffect(() => {
     if (user) {
       if (user.role === 'admin') {
-        navigate('/admin', { replace: true });
+        navigate(safeReturnTo, { replace: true });
       }
     }
-  }, [user, navigate]);
+  }, [user, safeReturnTo, navigate]);
 
   // Load admin demo credentials if available
   useEffect(() => {
@@ -80,7 +102,7 @@ export default function AdminLoginPage() {
 
     if (result.success && !result.requiresOtp) {
       showToast(`Welcome, Administrator ${result.user.name}!`, 'success');
-      navigate(returnTo || '/admin');
+      navigate(safeReturnTo);
     } else if (result.requiresOtp) {
       setStep('otp');
       showToast('Admin 2-step verification required. OTP: 123456', 'info');
@@ -103,7 +125,7 @@ export default function AdminLoginPage() {
 
     if (result.success && !result.requiresOtp) {
       showToast(`Welcome, Administrator ${result.user.name}!`, 'success');
-      navigate(returnTo || '/admin');
+      navigate(safeReturnTo);
     } else {
       setError(result.error || 'Invalid admin verification code.');
     }

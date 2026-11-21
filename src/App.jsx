@@ -9,18 +9,18 @@ import Footer from './components/Footer.jsx';
 import ToastContainer from './components/ToastContainer.jsx';
 import ErrorBoundary from './components/ErrorBoundary.jsx';
 
-// Pages
-import LandingPage from './pages/LandingPage.jsx';
-import LoginPage from './pages/LoginPage.jsx';
-import AdminLoginPage from './pages/AdminLoginPage.jsx';
-import RegisterPage from './pages/RegisterPage.jsx';
-import ReportIssuePage from './pages/ReportIssuePage.jsx';
-import ComplaintDetailPage from './pages/ComplaintDetailPage.jsx';
-import CivicMapPage from './pages/CivicMapPage.jsx';
-import DepartmentsPage from './pages/DepartmentsPage.jsx';
-import MyComplaintsPage from './pages/MyComplaintsPage.jsx';
-import AdminDashboardPage from './pages/AdminDashboardPage.jsx';
-import HelpPage from './pages/HelpPage.jsx';
+// Lazy-loaded page components for route code-splitting and optimized bundle performance
+const LandingPage = React.lazy(() => import('./pages/LandingPage.jsx'));
+const LoginPage = React.lazy(() => import('./pages/LoginPage.jsx'));
+const AdminLoginPage = React.lazy(() => import('./pages/AdminLoginPage.jsx'));
+const RegisterPage = React.lazy(() => import('./pages/RegisterPage.jsx'));
+const ReportIssuePage = React.lazy(() => import('./pages/ReportIssuePage.jsx'));
+const ComplaintDetailPage = React.lazy(() => import('./pages/ComplaintDetailPage.jsx'));
+const CivicMapPage = React.lazy(() => import('./pages/CivicMapPage.jsx'));
+const DepartmentsPage = React.lazy(() => import('./pages/DepartmentsPage.jsx'));
+const MyComplaintsPage = React.lazy(() => import('./pages/MyComplaintsPage.jsx'));
+const AdminDashboardPage = React.lazy(() => import('./pages/AdminDashboardPage.jsx'));
+const HelpPage = React.lazy(() => import('./pages/HelpPage.jsx'));
 import { ShieldAlert, AlertTriangle } from 'lucide-react';
 
 /**
@@ -166,77 +166,86 @@ function AppContent() {
       <Navbar />
       <main id="main-content" tabIndex={-1} className="flex-1 focus:outline-none">
         <ErrorBoundary>
-          <Routes>
-            <Route
-              path="/"
-              element={
-                <ProtectedRoute>
-                  <LandingPage />
-                </ProtectedRoute>
-              }
-            />
-            <Route path="/login" element={<LoginPage />} />
-            <Route path="/admin/login" element={<AdminLoginPage />} />
-            <Route path="/register" element={<RegisterPage />} />
-            <Route path="/help" element={<HelpPage />} />
-            <Route
-              path="/report"
-              element={
-                <CitizenReportRoute>
-                  <ReportIssuePage />
-                </CitizenReportRoute>
-              }
-            />
-            <Route
-              path="/issue/:id"
-              element={
-                <ProtectedRoute>
-                  <ComplaintDetailPage />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/map"
-              element={
-                <ProtectedRoute>
-                  <CivicMapPage />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/departments"
-              element={
-                <ProtectedRoute>
-                  <DepartmentsPage />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/my-complaints"
-              element={
-                <ProtectedRoute>
-                  <MyComplaintsPage />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/admin"
-              element={
-                <AdminRoute>
-                  <AdminDashboardPage />
-                </AdminRoute>
-              }
-            />
-            <Route
-              path="/admin/citizen"
-              element={
-                <AdminRoute>
-                  <AdminDashboardPage />
-                </AdminRoute>
-              }
-            />
-            <Route path="*" element={<CatchAllRoute />} />
-          </Routes>
+          <React.Suspense
+            fallback={
+              <div className="flex-1 flex flex-col items-center justify-center min-h-[50vh] p-8" aria-busy="true">
+                <div className="w-8 h-8 border-4 border-[#E6F4EA] border-t-[#188038] rounded-full animate-spin" />
+                <span className="sr-only">Loading page...</span>
+              </div>
+            }
+          >
+            <Routes>
+              <Route
+                path="/"
+                element={
+                  <ProtectedRoute>
+                    <LandingPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route path="/login" element={<LoginPage />} />
+              <Route path="/admin/login" element={<AdminLoginPage />} />
+              <Route path="/register" element={<RegisterPage />} />
+              <Route path="/help" element={<HelpPage />} />
+              <Route
+                path="/report"
+                element={
+                  <CitizenReportRoute>
+                    <ReportIssuePage />
+                  </CitizenReportRoute>
+                }
+              />
+              <Route
+                path="/issue/:id"
+                element={
+                  <ProtectedRoute>
+                    <ComplaintDetailPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/map"
+                element={
+                  <ProtectedRoute>
+                    <CivicMapPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/departments"
+                element={
+                  <ProtectedRoute>
+                    <DepartmentsPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/my-complaints"
+                element={
+                  <ProtectedRoute>
+                    <MyComplaintsPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/admin"
+                element={
+                  <AdminRoute>
+                    <AdminDashboardPage />
+                  </AdminRoute>
+                }
+              />
+              <Route
+                path="/admin/citizen"
+                element={
+                  <AdminRoute>
+                    <AdminDashboardPage />
+                  </AdminRoute>
+                }
+              />
+              <Route path="*" element={<CatchAllRoute />} />
+            </Routes>
+          </React.Suspense>
         </ErrorBoundary>
       </main>
       <Footer />

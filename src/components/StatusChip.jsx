@@ -15,7 +15,7 @@ export default function StatusChip({ status, size = 'md' }) {
   if (s === 'In Progress') {
     config = {
       bg: 'bg-[#FEF7E0]',
-      text: 'text-[#B06000]',
+      text: 'text-[#8A4600]',
       border: 'border-[#F9AB00]/40',
       icon: <RefreshCw className={`${size === 'sm' ? 'w-3.5 h-3.5' : 'w-4 h-4'} animate-spin-slow`} />,
       label: 'In Progress',
@@ -23,7 +23,7 @@ export default function StatusChip({ status, size = 'md' }) {
   } else if (s === 'Pending Review') {
     config = {
       bg: 'bg-[#E6F4EA]',
-      text: 'text-[#188038]',
+      text: 'text-[#0D652D]',
       border: 'border-[#188038]/30',
       icon: <Eye className={size === 'sm' ? 'w-3.5 h-3.5' : 'w-4 h-4'} />,
       label: 'Pending Review',
@@ -31,7 +31,7 @@ export default function StatusChip({ status, size = 'md' }) {
   } else if (s === 'Resolved') {
     config = {
       bg: 'bg-[#E6F4EA]',
-      text: 'text-[#1E8E3E]',
+      text: 'text-[#0D652D]',
       border: 'border-[#1E8E3E]/30',
       icon: <CheckCircle2 className={size === 'sm' ? 'w-3.5 h-3.5' : 'w-4 h-4'} />,
       label: 'Resolved',
@@ -39,7 +39,7 @@ export default function StatusChip({ status, size = 'md' }) {
   } else if (s === 'Reopened') {
     config = {
       bg: 'bg-[#FCE8E6]',
-      text: 'text-[#D93025]',
+      text: 'text-[#B71C1C]',
       border: 'border-[#D93025]/30',
       icon: <AlertCircle className={size === 'sm' ? 'w-3.5 h-3.5' : 'w-4 h-4'} />,
       label: 'Reopened',

@@ -86,6 +86,38 @@ export default function VoiceAssistantModal({
   const messagesEndRef = useRef(null);
   const silenceTimerRef = useRef(null);
   const isComponentMounted = useRef(true);
+  const modalCardRef = useRef(null);
+
+  // Focus trap and Escape key listener for accessible modal dialog
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') {
+        onClose();
+        return;
+      }
+      if (e.key === 'Tab' && modalCardRef.current) {
+        const focusables = modalCardRef.current.querySelectorAll(
+          'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+        );
+        if (focusables.length === 0) return;
+        const first = focusables[0];
+        const last = focusables[focusables.length - 1];
+
+        if (e.shiftKey && document.activeElement === first) {
+          e.preventDefault();
+          last.focus();
+        } else if (!e.shiftKey && document.activeElement === last) {
+          e.preventDefault();
+          first.focus();
+        }
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, onClose]);
 
   // Scroll messages to bottom smoothly
   const scrollToBottom = useCallback(() => {
@@ -591,7 +623,10 @@ export default function VoiceAssistantModal({
       aria-labelledby="voice-assistant-title"
       className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/50 backdrop-blur-xs animate-in fade-in"
     >
-      <div className="bg-white rounded-card w-full max-w-2xl border border-[#DADCE0] shadow-card flex flex-col h-[88vh] max-h-[720px] overflow-hidden">
+      <div
+        ref={modalCardRef}
+        className="bg-white rounded-card w-full max-w-2xl border border-[#DADCE0] shadow-card flex flex-col h-[88vh] max-h-[720px] overflow-hidden"
+      >
         {/* Top Header Bar */}
         <div className="px-5 py-3.5 border-b border-[#DADCE0] flex items-center justify-between bg-[#F8F9FA]/80">
           <div className="flex items-center gap-2.5">
